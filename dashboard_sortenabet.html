@@ -41,19 +41,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;f
 .filters select{font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid #ddd;background:#fff;color:#333;cursor:pointer}
 .filters select:hover{border-color:#aaa}
 .results-count{font-size:12px;color:#888;margin-bottom:6px}
-.table-wrap{background:#fff;border-radius:10px;border:1px solid #e8e7e3;overflow:hidden;margin-bottom:2rem}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:8px 12px;background:#f8f7f3;color:#666;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #e8e7e3;white-space:nowrap}
-td{padding:8px 12px;border-bottom:1px solid #f0efeb;color:#333;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#faf9f5}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
-.b-red{background:#fde8e8;color:#9b2} .b-red{background:#fde8e8;color:#b32}
+/* Board toolbar */
+.board-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.board-search{flex:1;min-width:200px;font-size:13px;padding:7px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#333;outline:none}
+.board-search:focus{border-color:#185FA5;box-shadow:0 0 0 2px #c5d9f0}
+.board-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.board-filters select{font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid #ddd;background:#fff;color:#555;cursor:pointer}
+.btn-clear{font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid #ddd;background:#f5f4f0;color:#888;cursor:pointer}
+.btn-clear:hover{background:#eee;color:#444}
+/* Scrollable table wrapper - NO horizontal scroll, fit to page */
+.board-wrap{border-radius:10px;border:1px solid #e8e7e3;margin-bottom:2rem;width:100%;overflow:hidden}
+.board-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:11px;background:#fff}
+.board-table th{text-align:left;padding:7px 8px;background:#f8f7f3;color:#666;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #e8e7e3;white-space:nowrap;overflow:hidden;position:sticky;top:0;z-index:2}
+.board-table td{padding:6px 8px;border-bottom:1px solid #f0efeb;color:#333;vertical-align:middle;overflow:hidden}
+.board-table tr:last-child td{border-bottom:none}
+.board-table tr:hover td{background:#faf9f5}
+/* col widths — fixed, totals ~100% */
+.col-n{width:3%}
+.col-autor{width:16%}
+.col-uf{width:3%;text-align:center}
+.col-comarca{width:12%}
+.col-objeto{width:9%}
+.col-sj{width:16%}
+.col-valor{width:8%;text-align:right}
+.col-risco{width:6%;text-align:center}
+.col-resultado{width:9%}
+.col-defesa{width:5%;text-align:center}
+.col-proc{width:13%;font-family:monospace;font-size:9px;color:#aaa}
+/* truncate all cells */
+.trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+/* badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
+.b-red{background:#fde8e8;color:#b32}
 .b-amber{background:#faeeda;color:#7a4400}
 .b-green{background:#e5f4ec;color:#1a6b3a}
 .b-blue{background:#e4eef9;color:#1a4d8a}
 .b-gray{background:#f1f0ec;color:#555}
 .b-purple{background:#eeedfe;color:#3c3489}
+/* Status jurídico badges */
+.sj{display:block;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sj-minuta{background:#cfe2ff;color:#084298;border:1px solid #b6d4fe}
+.sj-pendente{background:#fff3cd;color:#664d03;border:1px solid #ffe69c}
+.sj-arquivado{background:#e8e7e3;color:#555;border:1px solid #d5d4cf}
+.sj-sentenca{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
+.sj-acordao{background:#ffd6e7;color:#7a0045;border:1px solid #ffb3d1}
+.sj-inicial{background:#e2d9f3;color:#3d0a6e;border:1px solid #d0b8f5}
+.sj-arquivamento{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+.sj-validar{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+.sj-execucao{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+.sj-default{background:#f1f0ec;color:#555;border:1px solid #ddd}
 .no-data{text-align:center;padding:2rem;color:#aaa;font-size:13px}
 </style>
 </head>
@@ -63,7 +99,7 @@ tr:hover td{background:#faf9f5}
     <div class="header-title"><i class="ti ti-scale" style="font-size:16px;vertical-align:-2px;margin-right:6px" aria-hidden="true"></i>Dashboard de Processos — Sortenabet</div>
     <div class="header-sub">Relatório de Processos Ativos · 31/05/2026</div>
   </div>
-  <div class="header-badge">93 processos · atualizado 31/05/2026</div>
+  <div class="header-badge">91 processos · atualizado 31/05/2026</div>
 </div>
 
 <div class="main">
@@ -97,34 +133,38 @@ tr:hover td{background:#faf9f5}
 
   <div class="chart-card-full">
     <div class="chart-title">distribuição por período</div>
-    <div style="position:relative;height:220px"><canvas id="chartMes" role="img" aria-label="Distribuição por período"></canvas></div>
+    <div style="position:relative;height:160px"><canvas id="chartMes" role="img" aria-label="Distribuição por período"></canvas></div>
   </div>
 
   <div class="section-title"><i class="ti ti-alert-triangle" style="color:#d44" aria-hidden="true"></i> atenção imediata — prazos e audiências</div>
   <div class="urgency-list" id="urgencias"></div>
 
-  <div class="section-title"><i class="ti ti-list" aria-hidden="true"></i> lista de processos</div>
-  <div class="filters">
-    <label>Objeto:</label>
-    <select id="filtObjeto" onchange="renderTable()"><option value="">Todos</option></select>
-    <label>UF:</label>
-    <select id="filtUF" onchange="renderTable()"><option value="">Todas</option></select>
-    <label>Risco:</label>
-    <select id="filtRisco" onchange="renderTable()"><option value="">Todos</option></select>
-    <label>Defesa:</label>
-    <select id="filtDefesa" onchange="renderTable()">
-      <option value="">Todos</option>
-      <option value="Sim">Apresentada</option>
-      <option value="Não">Não apresentada</option>
-    </select>
-    <label>Resultado:</label>
-    <select id="filtResultado" onchange="renderTable()"><option value="">Todos</option></select>
+  <div class="section-title"><i class="ti ti-layout-board" aria-hidden="true"></i> lista de processos</div>
+  <div class="board-toolbar">
+    <input type="text" id="searchInput" placeholder="🔍  Buscar por autor ou número do processo..." oninput="renderTable()" class="board-search">
+    <div class="board-filters">
+      <select id="filtObjeto" onchange="renderTable()"><option value="">Objeto</option></select>
+      <select id="filtUF" onchange="renderTable()"><option value="">UF</option></select>
+      <select id="filtRisco" onchange="renderTable()"><option value="">Risco</option></select>
+      <select id="filtStatus" onchange="renderTable()"><option value="">Status jurídico</option></select>
+      <button class="btn-clear" onclick="clearFilters()">✕ Limpar</button>
+    </div>
   </div>
   <div class="results-count" id="results-count"></div>
-  <div class="table-wrap">
-    <table>
+  <div class="board-wrap">
+    <table class="board-table">
       <thead><tr>
-        <th>#</th><th>Autor</th><th>UF</th><th>Comarca</th><th>Objeto</th><th>Valor da Causa</th><th>Risco</th><th>Resultado</th><th>Defesa?</th><th>Contrato</th><th>Processo</th>
+        <th class="col-n">#</th>
+        <th class="col-autor">Autor</th>
+        <th class="col-uf">UF</th>
+        <th class="col-comarca">Comarca</th>
+        <th class="col-objeto">Objeto</th>
+        <th class="col-sj">Status Jurídico</th>
+        <th class="col-valor">Valor da Causa</th>
+        <th class="col-risco">Risco</th>
+        <th class="col-resultado">Resultado</th>
+        <th class="col-defesa">Defesa?</th>
+        <th class="col-proc">Nº Processo</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -208,8 +248,6 @@ const raw=[
 {n:72,autor:"Lais Menezes Lopes",uf:"SP",comarca:"4ª Vara Cível Santana",objeto:"Ludopatia",valor:401563,risco:"Remoto",fase:"Conhecimento",resultado:"Em andamento",defesa:"Não",contrato:"Mensal",processo:"4004299-41.2026.8.26.0001"},
 {n:73,autor:"Mohamad Seme Sayed",uf:"SP",comarca:"2º Juizado Barueri",objeto:"Autoexclusão",valor:64489,risco:"Remoto",fase:"Conhecimento",resultado:"Em andamento",defesa:"N/A",contrato:"Mensal",processo:"4002773-32.2026.8.26.0068"},
 {n:74,autor:"Pedro Henrique Andrade de Souza",uf:"SP",comarca:"2ª Vara Cível Cruzeiro",objeto:"Ludopatia",valor:979711,risco:"Remoto",fase:"Conhecimento",resultado:"Em andamento",defesa:"Não",contrato:"Mensal",processo:"4000613-61.2026.8.26.0156"},
-{n:75,autor:"Grow Empreendimentos Digitais",uf:"SP",comarca:"34ª Vara Cível São Paulo",objeto:"Devolução de Pagamento",valor:1837207,risco:"Possível",fase:"Conhecimento",resultado:"Em andamento",defesa:"N/A",contrato:"Proposta individualizada",processo:"4005344-11.2025.8.26.0003"},
-{n:76,autor:"Sortenabet (autora) vs Miriely",uf:"SP",comarca:"4ª Vara Cível Barueri",objeto:"Descumprimento contratual",valor:1810790,risco:"Possível",fase:"Conhecimento",resultado:"Em andamento",defesa:"N/A",contrato:"Proposta individualizada",processo:"4009701-33.2025.8.26.0068"},
 {n:77,autor:"Isaura Porfiria da Silva Neta",uf:"SP",comarca:"VT Caraguatatuba",objeto:"Trabalhista",valor:45332,risco:"Remoto",fase:"Recursal",resultado:"Improcedente",defesa:"Sim",contrato:"Proposta individualizada",processo:"0010106-13.2025.5.15.0063"},
 {n:78,autor:"Andressa Larissa Fraga Santos",uf:"SP",comarca:"1ª VT Barueri",objeto:"Trabalhista",valor:723580,risco:"Remoto",fase:"Conhecimento",resultado:"Em andamento",defesa:"Não",contrato:"Mensal",processo:"1001973-96.2025.5.02.0201"},
 {n:79,autor:"Gustavo Silva dos Reis",uf:"SP",comarca:"1ª VT Barueri",objeto:"Trabalhista",valor:57776,risco:"Remoto",fase:"Conhecimento",resultado:"Em andamento",defesa:"Não",contrato:"Mensal",processo:"1000537-68.2026.5.02.0201",audiencia:"10/06/2026"},
@@ -292,95 +330,164 @@ new Chart(document.getElementById('chartFase'),{type:'pie',data:{labels:fKeys,da
 
 const mesLabels=['Out/2024','Dez/2024','Jan/2025','Fev/2025','Abr/2025','Ago/2025','Set/2025','Out/2025','Nov/2025','Dez/2025','Jan/2026','Fev/2026','Mar/2026','Abr/2026','Mai/2026'];
 const mesVals=[1,3,2,1,1,4,2,4,3,6,5,7,9,16,10];
-const mesColors=mesLabels.map(l=>{
-  if(l.includes('2024'))return'#b0c9e0';
-  if(l.includes('2025')){
-    const m=l.split('/')[0];
-    const map={Jan:'#7fb4d8',Fev:'#7fb4d8',Abr:'#55a0ca',Ago:'#2b8abc',Set:'#2b8abc',Out:'#185FA5',Nov:'#185FA5',Dez:'#0f4a80'};
-    return map[m]||'#185FA5';
-  }
-  const m=l.split('/')[0];
-  const map2026={Jan:'#1a6b3a',Fev:'#1d8a4e',Mar:'#22a85f',Abr:'#e05c1a',Mai:'#c04a10'};
-  return map2026[m]||'#185FA5';
-});
+const mesGradient=mesLabels.map(l=>l.includes('2024')?'#b0c9e0':l.includes('2025')?'#2b8abc':l==='Jan/2026'||l==='Fev/2026'||l==='Mar/2026'?'#22a85f':'#e05c1a');
 new Chart(document.getElementById('chartMes'),{
   type:'bar',
-  data:{
-    labels:mesLabels,
-    datasets:[{
-      label:'Processos distribuídos',
-      data:mesVals,
-      backgroundColor:mesColors,
-      borderRadius:4,
-      borderSkipped:false
-    }]
-  },
-  options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{
-      legend:{display:false},
-      tooltip:{
-        callbacks:{
-          title:ctx=>ctx[0].label,
-          label:ctx=>`${ctx.parsed.y} processo${ctx.parsed.y!==1?'s':''} distribuídos`
-        }
-      }
-    },
-    scales:{
-      x:{
-        grid:{display:false},
-        ticks:{font:{size:10},color:'#888',maxRotation:45}
-      },
-      y:{
-        beginAtZero:true,
-        ticks:{stepSize:2,font:{size:11},color:'#888'},
-        grid:{color:'#f0efeb'},
-        title:{display:true,text:'nº de processos',font:{size:10},color:'#aaa'}
-      }
-    }
-  }
+  data:{labels:mesLabels,datasets:[{label:'Processos distribuídos',data:mesVals,backgroundColor:mesGradient,borderRadius:4,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} processo${ctx.parsed.y!==1?'s':''}`}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#888',maxRotation:45}},y:{beginAtZero:true,ticks:{stepSize:2,font:{size:11},color:'#888'},grid:{color:'#f0efeb'}}}}
 });
 const mesLegDiv=document.querySelector('.chart-card-full');
-if(mesLegDiv){
-  const legHtml=`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#666">
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#b0c9e0;display:inline-block"></span>2024</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#185FA5;display:inline-block"></span>2025</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#22a85f;display:inline-block"></span>Jan–Mar 2026</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#e05c1a;display:inline-block"></span>Abr–Mai 2026 <strong style="color:#e05c1a">(pico)</strong></span>
-  </div>`;
-  mesLegDiv.insertAdjacentHTML('beforeend',legHtml);
-}
+if(mesLegDiv)mesLegDiv.insertAdjacentHTML('beforeend',`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#666">
+  <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#b0c9e0;display:inline-block"></span>2024</span>
+  <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#2b8abc;display:inline-block"></span>2025</span>
+  <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#22a85f;display:inline-block"></span>Jan–Mar 2026</span>
+  <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#e05c1a;display:inline-block"></span>Abr–Mai 2026 <strong style="color:#e05c1a">(pico)</strong></span>
+</div>`);
 
+/* ── Status Jurídico map ── */
+const sjMap={
+  '0087233-49.2026.8.04.1000':'Aguardando minuta da defesa',
+  '0093163-48.2026.8.04.1000':'Aguardando minuta da defesa',
+  '0067212-15.2026.8.05.0001':'Aguardando minuta da defesa',
+  '0015498-70.2026.8.05.0080':'Pendente de análise',
+  '0009455-46.2026.8.05.0039':'Pendente de análise',
+  '3004085-67.2026.8.06.6001':'Aguardando minuta da defesa',
+  '3010883-23.2025.8.06.0167':'Arquivado',
+  '3007428-71.2026.8.06.6001':'Aguardando minuta da defesa',
+  '0707025-29.2025.8.07.0017':'Aguardando minuta da defesa',
+  '0712542-29.2026.8.07.0001':'Aguardando sentença',
+  '5013707-69.2024.8.08.0014':'Aguardando sentença',
+  '5008427-62.2025.8.08.0021':'Aguardando sentença',
+  '5010282-95.2025.8.08.0047':'Aguardando minuta da defesa',
+  '5005826-65.2026.8.08.0048':'Aguardando minuta da defesa',
+  '5015342-51.2026.8.08.0035':'Aguardando minuta da defesa',
+  '5014249-14.2026.8.08.0048':'Aguardando minuta da defesa',
+  '5007433-70.2026.8.08.0030':'Pendente de análise',
+  '6128606-22.2024.8.09.0051':'Aguardando acórdão',
+  '5092090-49.2026.8.09.0051':'Aguardando sentença',
+  '5783506-09.2025.8.09.0011':'Aguardando acórdão',
+  '5205056-39.2026.8.09.0023':'Aguardando minuta da defesa',
+  '5361294-96.2026.8.09.0149':'Pendente de análise',
+  '1015597-72.2026.8.13.0024':'Aguardando minuta da defesa',
+  '1009491-56.2025.8.13.0145':'Aguardando minuta da defesa',
+  '1022368-66.2026.8.13.0024':'Aguardando acórdão',
+  '1002815-06.2026.8.13.0518':'Aguardando minuta da defesa',
+  '1008354-05.2026.8.13.0145':'Validar defesa',
+  '1000004-08.2026.8.13.0184':'Aguardando minuta da defesa',
+  '1072460-82.2025.8.13.0024':'Pendente de análise',
+  '1018947-71.2026.8.13.0702':'Aguardando minuta da defesa',
+  '1070181-89.2026.8.13.0024':'Aguardando minuta da defesa',
+  '1000720-76.2026.8.13.0720':'Aguardando arquivamento',
+  '1080009-12.2026.8.13.0024':'Pendente de análise',
+  '1003542-90.2026.8.13.0056':'Pendente de análise',
+  '0803565-15.2026.8.12.0002':'Aguardando minuta da defesa',
+  '0815702-32.2026.8.12.0001':'Aguardando minuta da defesa',
+  '5000016-82.2026.8.12.0021':'Aguardando minuta da defesa',
+  '1005097-70.2026.8.11.0001':'Aguardando sentença',
+  '1014386-27.2026.8.11.0001':'Aguardando arquivamento',
+  '1003384-49.2026.8.11.0037':'Aguardando minuta da defesa',
+  '1007346-85.2026.8.11.0003':'Aguardando sentença',
+  '1000805-03.2026.8.11.0014':'Aguardando minuta da defesa',
+  '0807290-75.2025.8.14.0039':'Aguardando sentença',
+  '0006611-48.2026.8.17.8201':'Aguardando minuta da defesa',
+  '0006311-70.2026.8.17.3130':'Aguardando minuta da defesa',
+  '0804691-64.2025.8.18.0036':'Aguardando minuta da defesa',
+  '0804781-17.2026.8.18.0140':'Aguardando minuta da defesa',
+  '0803376-88.2026.8.18.0028':'Pendente de análise',
+  '0001315-71.2025.8.16.0194':'Aguardando acórdão',
+  '0000178-80.2026.8.16.0174':'Aguardando minuta da defesa',
+  '0002566-29.2026.8.16.0182':'Aguardando minuta da defesa',
+  '0003507-32.2026.8.16.0035':'Aguardando minuta da defesa',
+  '0004039-09.2026.8.16.0131':'Pendente de análise',
+  '0008935-92.2026.8.16.0035':'Pendente de análise',
+  '6000001-74.2026.8.16.0057':'Aguardando inicial',
+  '0822050-41.2024.8.19.0066':'Aguardando inicial',
+  '0855734-58.2025.8.19.0021':'Aguardando acórdão',
+  '0812667-92.2025.8.19.0037':'Aguardando sentença',
+  '3002754-44.2026.8.19.0066':'Aguardando minuta da defesa',
+  '3007776-84.2026.8.19.0001':'Aguardando minuta da defesa',
+  '0800689-17.2026.8.20.5159':'Pendente de análise',
+  '7004491-04.2026.8.22.0010':'Pendente de análise',
+  '5213737-65.2025.8.21.0001':'Execução',
+  '5004224-08.2026.8.21.0006':'Pendente de análise',
+  '5011585-37.2026.8.21.0019':'Aguardando minuta da defesa',
+  '5007877-78.2025.8.24.0035':'Aguardando minuta da defesa',
+  '5001314-85.2026.8.24.0018':'Aguardando minuta da defesa',
+  '5005770-18.2026.8.24.0038':'Aguardando minuta da defesa',
+  '4011464-69.2025.8.26.0068':'Aguardando minuta da defesa',
+  '4008024-28.2026.8.26.0554':'Aguardando minuta da defesa',
+  '4004265-30.2025.8.26.0477':'Arquivado',
+  '4004299-41.2026.8.26.0001':'Aguardando minuta da defesa',
+  '4002773-32.2026.8.26.0068':'Aguardando minuta da defesa',
+  '4000613-61.2026.8.26.0156':'Aguardando minuta da defesa',
+  '0010106-13.2025.5.15.0063':'Aguardando acórdão',
+  '1001973-96.2025.5.02.0201':'Aguardando minuta da defesa',
+  '1000537-68.2026.5.02.0201':'Pendente de análise',
+  '4002029-23.2026.8.26.0590':'Aguardando minuta da defesa',
+  '4061021-89.2026.8.26.0100':'Aguardando minuta da defesa',
+  '4001082-06.2026.8.26.0319':'Aguardando minuta da defesa',
+  '4000731-41.2026.8.26.0575':'Aguardando minuta da defesa',
+  '4030986-52.2026.8.26.0002':'Pendente de análise',
+  '4066791-63.2026.8.26.0100':'Aguardando inicial',
+  '4017509-72.2026.8.26.0224':'Aguardando minuta da defesa',
+  '4004391-70.2026.8.26.0566':'Aguardando minuta da defesa',
+  '4000796-14.2026.8.26.0356':'Pendente de análise',
+  '4006587-52.2026.8.26.0068':'Aguardando minuta da defesa',
+  '4004221-82.2026.8.26.0248':'Pendente de análise',
+  '4003182-72.2026.8.26.0176':'Pendente de análise',
+  '4016117-69.2026.8.26.0007':'Aguardando inicial',
+};
+const sjClass={'Aguardando minuta da defesa':'sj-minuta','Pendente de análise':'sj-pendente','Arquivado':'sj-arquivado','Aguardando sentença':'sj-sentenca','Aguardando acórdão':'sj-acordao','Aguardando inicial':'sj-inicial','Aguardando arquivamento':'sj-arquivamento','Validar defesa':'sj-validar','Execução':'sj-execucao'};
+function getSJ(proc){const s=sjMap[proc.trim()]||'—';return`<span class="sj ${sjClass[s]||'sj-default'}">${s}</span>`}
+
+/* ── Selectors ── */
 const selObj=document.getElementById('filtObjeto');
 objSort.forEach(e=>{selObj.innerHTML+=`<option value="${e[0]}">${e[0]}</option>`;});
 const selUF=document.getElementById('filtUF');
 ufSort.forEach(e=>{selUF.innerHTML+=`<option value="${e[0]}">${e[0]}</option>`;});
 const selRisco=document.getElementById('filtRisco');
 rKeys.forEach(k=>{selRisco.innerHTML+=`<option value="${k}">${k}</option>`;});
-const selRes=document.getElementById('filtResultado');
-[...new Set(raw.map(p=>p.resultado))].forEach(r=>{selRes.innerHTML+=`<option value="${r}">${r}</option>`;});
+const selSt=document.getElementById('filtStatus');
+[...new Set(Object.values(sjMap))].sort().forEach(s=>{selSt.innerHTML+=`<option value="${s}">${s}</option>`;});
+
+function clearFilters(){
+  ['filtObjeto','filtUF','filtRisco','filtStatus','searchInput'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderTable();
+}
+
+function fmt(v){return v>0?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):'—'}
+function riscoBadge(r){const m={Possível:'b-amber',Remoto:'b-blue',Provável:'b-red'};return`<span class="badge ${m[r]||'b-gray'}">${r}</span>`}
+function resultBadge(r){const m={'Em andamento':'b-blue',Improcedente:'b-green',Extinto:'b-gray',Encerrado:'b-purple'};return`<span class="badge ${m[r]||'b-gray'}">${r}</span>`}
+function defesaBadge(d){if(d==='Sim')return'<span class="badge b-green">✓</span>';if(d==='Não')return'<span class="badge b-red">✗</span>';return'<span class="badge b-gray">N/A</span>'}
 
 function renderTable(){
   const fo=document.getElementById('filtObjeto').value;
   const fu=document.getElementById('filtUF').value;
   const fr=document.getElementById('filtRisco').value;
-  const fd=document.getElementById('filtDefesa').value;
-  const fres=document.getElementById('filtResultado').value;
-  const filtered=raw.filter(p=>(!fo||p.objeto===fo)&&(!fu||p.uf===fu)&&(!fr||p.risco===fr)&&(!fd||p.defesa===fd)&&(!fres||p.resultado===fres));
+  const fs=document.getElementById('filtStatus').value;
+  const sq=(document.getElementById('searchInput')||{value:''}).value.toLowerCase();
+  const filtered=raw.filter(p=>{
+    if(fo&&p.objeto!==fo)return false;
+    if(fu&&p.uf!==fu)return false;
+    if(fr&&p.risco!==fr)return false;
+    if(fs&&(sjMap[p.processo.trim()]||'—')!==fs)return false;
+    if(sq&&!p.autor.toLowerCase().includes(sq)&&!p.processo.includes(sq))return false;
+    return true;
+  });
   document.getElementById('results-count').textContent=`Exibindo ${filtered.length} de ${raw.length} processos`;
   document.getElementById('tbody').innerHTML=filtered.map(p=>`<tr>
-    <td style="font-weight:600;color:#888;width:30px">${p.n}</td>
-    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.autor}">${p.autor}</td>
-    <td><span class="badge b-gray">${p.uf}</span></td>
-    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#666;font-size:11px" title="${p.comarca}">${p.comarca}</td>
-    <td>${p.objeto||'—'}</td>
-    <td style="white-space:nowrap;font-variant-numeric:tabular-nums">${fmt(p.valor)}</td>
-    <td>${riscoBadge(p.risco)}</td>
-    <td>${resultBadge(p.resultado)}</td>
-    <td>${defesaBadge(p.defesa)}</td>
-    <td style="font-size:11px;color:#888;white-space:nowrap">${p.contrato}</td>
-    <td style="font-size:10px;color:#aaa;white-space:nowrap">${p.processo}</td>
+    <td class="col-n" style="color:#bbb;font-size:10px;font-weight:600">${p.n}</td>
+    <td class="col-autor"><span class="trunc" style="font-weight:500" title="${p.autor}">${p.autor}</span></td>
+    <td class="col-uf" style="text-align:center"><span class="badge b-gray" style="font-size:9px;padding:1px 5px">${p.uf}</span></td>
+    <td class="col-comarca"><span class="trunc" style="color:#666;font-size:10px" title="${p.comarca}">${p.comarca}</span></td>
+    <td class="col-objeto"><span class="trunc" style="font-size:11px">${p.objeto||'—'}</span></td>
+    <td class="col-sj">${getSJ(p.processo)}</td>
+    <td class="col-valor" style="font-variant-numeric:tabular-nums;font-size:11px;font-weight:500;text-align:right;white-space:nowrap">${fmt(p.valor)}</td>
+    <td class="col-risco" style="text-align:center">${riscoBadge(p.risco)}</td>
+    <td class="col-resultado">${resultBadge(p.resultado)}</td>
+    <td class="col-defesa" style="text-align:center">${defesaBadge(p.defesa)}</td>
+    <td class="col-proc"><span class="trunc" title="${p.processo}">${p.processo}</span></td>
   </tr>`).join('');
 }
 renderTable();
