@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de Processos — Sortenabet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#0f1f38;
+  --navy-2:#16294a;
+  --ink:#1c2536;
+  --paper:#f4f6fa;
+  --card:#ffffff;
+  --line:#e3e8f0;
+  --muted:#6b7688;
+  --blue:#2f6fed;
+  --blue-soft:#e7eefd;
+  --teal:#0f9b8e;
+  --amber:#e8a33d;
+  --amber-soft:#fdf1de;
+  --red:#d64545;
+  --red-soft:#fbe8e8;
+  --green:#3fae6a;
+  --green-soft:#e7f7ee;
+  --radius:12px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Inter',Roboto,Arial,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.45;
+}
+a{color:inherit;}
+
+/* ---------- header ---------- */
+header.top{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 100%);
+  color:#fff;
+  padding:28px clamp(16px,4vw,48px) 20px;
+}
+.top-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;}
+.top-title h1{margin:0 0 4px;font-size:26px;font-weight:700;letter-spacing:.2px;}
+.top-title p{margin:0;color:#b9c5de;font-size:14.5px;}
+.badge{
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;
+  padding:8px 16px;
+  font-size:13px;
+  color:#dfe7f7;
+  white-space:nowrap;
+}
+.badge b{color:#fff;}
+nav.tabs{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:22px;
+}
+nav.tabs a{
+  text-decoration:none;
+  font-size:13.5px;
+  color:#c9d4ea;
+  padding:8px 14px;
+  border-radius:8px;
+  background:rgba(255,255,255,.05);
+  border:1px solid transparent;
+  transition:all .15s ease;
+}
+nav.tabs a:hover{background:rgba(255,255,255,.12);color:#fff;}
+
+/* ---------- layout ---------- */
+main{padding:28px clamp(16px,4vw,48px) 60px;max-width:1400px;margin:0 auto;}
+section{scroll-margin-top:18px;margin-bottom:46px;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.section-head h2{font-size:18px;margin:0;color:var(--navy);}
+.section-head .hint{font-size:12.5px;color:var(--muted);}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px 20px;
+}
+
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+.kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.kpi .value{font-size:26px;font-weight:700;color:var(--navy);}
+.kpi .sub{font-size:12.5px;color:var(--muted);margin-top:4px;}
+.kpi.accent-blue .value{color:var(--blue);}
+.kpi.accent-amber .value{color:var(--amber);}
+.kpi.accent-red .value{color:var(--red);}
+.kpi.accent-green .value{color:var(--green);}
+
+/* chart grid */
+.chart-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.chart-grid .card{min-height:320px;}
+.chart-grid canvas{max-height:280px;}
+.chart-grid .full{grid-column:1 / -1;}
+.chart-title{font-size:13.5px;font-weight:600;color:var(--navy);margin-bottom:10px;}
+@media (max-width:820px){.chart-grid{grid-template-columns:1fr;}}
+
+/* atencao imediata */
+.attn-list{display:flex;flex-direction:column;gap:8px;}
+.attn-item{
+  display:grid;
+  grid-template-columns:96px 1fr auto auto;
+  gap:14px;
+  align-items:center;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.attn-item .date-chip{
+  font-weight:700;
+  font-size:13px;
+  padding:6px 8px;
+  border-radius:8px;
+  text-align:center;
+}
+.attn-item .info b{display:block;font-size:13.5px;color:var(--navy);}
+.attn-item .info span{font-size:12px;color:var(--muted);}
+.attn-item .tag{font-size:11px;padding:4px 9px;border-radius:999px;font-weight:600;white-space:nowrap;}
+.attn-item .num{font-size:12px;color:var(--muted);font-family:monospace;}
+.urgent .date-chip{background:var(--red-soft);color:var(--red);}
+.soon .date-chip{background:var(--amber-soft);color:#a76a12;}
+.later .date-chip{background:var(--blue-soft);color:var(--blue);}
+.tag.aud{background:var(--blue-soft);color:var(--blue);}
+.tag.defesa{background:var(--amber-soft);color:#a76a12;}
+.tag.sentenca{background:var(--green-soft);color:var(--green);}
+.empty-state{padding:26px;text-align:center;color:var(--muted);font-size:13.5px;}
+
+/* filters + table */
+.filters{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+  align-items:center;
+}
+.filters select, .filters input[type=text]{
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:9px 12px;
+  font-size:13px;
+  background:#fff;
+  color:var(--ink);
+  min-width:150px;
+}
+.filters input[type=text]{min-width:220px;flex:1;}
+.filters button{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:8px;
+  padding:9px 14px;
+  font-size:13px;
+  cursor:pointer;
+  color:var(--muted);
+}
+.filters button:hover{background:#f1f3f8;}
+.filters .count{font-size:12.5px;color:var(--muted);margin-left:auto;}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:#fff;}
+table{border-collapse:collapse;width:100%;font-size:13px;}
+thead th{
+  background:var(--navy);
+  color:#fff;
+  text-align:left;
+  padding:11px 12px;
+  font-weight:600;
+  white-space:nowrap;
+  position:sticky;top:0;
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+tbody tr:hover{background:#f7f9fc;}
+tbody tr:last-child td{border-bottom:none;}
+.pill{padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;}
+.risco-remoto{background:var(--green-soft);color:var(--green);}
+.risco-possivel{background:var(--amber-soft);color:#a76a12;}
+.risco-provavel{background:var(--red-soft);color:var(--red);}
+.def-sim{background:var(--green-soft);color:var(--green);}
+.def-nao{background:var(--red-soft);color:var(--red);}
+.status-pill{background:#eef1f7;color:#3c4658;}
+.mono{font-family:monospace;font-size:12px;color:var(--muted);}
+
+footer{padding:22px clamp(16px,4vw,48px) 40px;color:var(--muted);font-size:12px;text-align:center;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="top-title">
+      <h1>Dashboard de Processos — Sortenabet</h1>
+      <p>Relatório de Processos Ativos · 30/06/2026</p>
+    </div>
+    <div class="badge"><b id="totalBadge">121</b> processos ativos · atualizado <b>07/07/2026</b></div>
+  </div>
+  <nav class="tabs">
+    <a href="#visao-geral">Visão geral</a>
+    <a href="#por-objeto">Por objeto</a>
+    <a href="#risco">Risco de perda</a>
+    <a href="#uf">Processos por UF</a>
+    <a href="#fase">Fase processual</a>
+    <a href="#periodo">Distribuição por período</a>
+    <a href="#atencao">Atenção imediata</a>
+    <a href="#lista">Lista de processos</a>
+  </nav>
+</header>
+
+<main>
+
+  <section id="visao-geral">
+    <div class="section-head"><h2>Visão geral</h2><span class="hint">Base: 121 processos ativos + 11 arquivados (histórico)</span></div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </section>
+
+  <section id="por-objeto">
+    <div class="section-head"><h2>Por objeto</h2></div>
+    <div class="card"><canvas id="chartObjeto" style="max-height:340px;"></canvas></div>
+  </section>
+
+  <section id="risco">
+    <div class="section-head"><h2>Risco de perda</h2></div>
+    <div class="chart-grid">
+      <div class="card"><div class="chart-title">Distribuição por risco</div><canvas id="chartRisco"></canvas></div>
+      <div class="card"><div class="chart-title">Valor da causa exposto por risco (R$)</div><canvas id="chartRiscoValor"></canvas></div>
+    </div>
+  </section>
+
+  <section id="uf">
+    <div class="section-head"><h2>Processos por UF</h2></div>
+    <div class="card"><canvas id="chartUF" style="max-height:360px;"></canvas></div>
+  </section>
+
+  <section id="fase">
+    <div class="section-head"><h2>Fase processual</h2></div>
+    <div class="chart-grid">
+      <div class="card"><div class="chart-title">Fase processual</div><canvas id="chartFase"></canvas></div>
+      <div class="card"><div class="chart-title">Defesa apresentada?</div><canvas id="chartDefesa"></canvas></div>
+    </div>
+  </section>
+
+  <section id="periodo">
+    <div class="section-head"><h2>Distribuição por período</h2><span class="hint">Nº de ações distribuídas por mês</span></div>
+    <div class="card"><canvas id="chartPeriodo" style="max-height:300px;"></canvas></div>
+  </section>
+
+  <section id="atencao">
+    <div class="section-head"><h2>Atenção imediata — prazos e audiências</h2><span class="hint">Extraído automaticamente dos andamentos e do campo "Defesa apresentada?"</span></div>
+    <div id="attnList" class="attn-list"></div>
+  </section>
+
+  <section id="lista">
+    <div class="section-head"><h2>Lista de processos</h2></div>
+    <div class="filters">
+      <select id="fObjeto"><option value="">Objeto</option></select>
+      <select id="fUF"><option value="">UF</option></select>
+      <select id="fRisco"><option value="">Risco</option></select>
+      <select id="fStatus"><option value="">Status jurídico</option></select>
+      <input type="text" id="fSearch" placeholder="Buscar autor, comarca ou nº do processo...">
+      <button id="fClear">✕ Limpar</button>
+      <span class="count" id="fCount"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Autor</th><th>UF</th><th>Comarca</th><th>Objeto</th>
+            <th>Status Jurídico</th><th>Valor da Causa</th><th>Risco</th>
+            <th>Resultado</th><th>Defesa?</th><th>Nº Processo</th>
+          </tr>
+        </thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>Dashboard gerado a partir de "Relatório de Processos Ativos – Sortenabet – 30/06/2026 (AJUSTADO)" e do board Jurídico (monday.com). Dados apenas para uso interno.</footer>
+
+<script>
+const DATA = [{"num": 1, "marca": "Sorte", "autor": "Jean Cleison Braga Guimarães", "uf": "AM", "comarca": "16° Juízado Especial Cível da Comarca de Manaus", "sistema": "Projudi", "processo": "0087233-49.2026.8.04.1000", "distribuicao": "2026-03-31", "objeto": "Autoexclusão", "valor": 16210.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 2, "marca": "Betou", "autor": "Gabriel Silva Vieira", "uf": "AM", "comarca": "2ª Vara Cível e de Acidentes de Trabalho da Comarca de Manaus - Cível", "sistema": "Projudi", "processo": "0093163-48.2026.8.04.1000", "distribuicao": "2026-04-06", "objeto": "Ludopatia", "valor": 50000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": true}, {"num": 3, "marca": "Fusion", "autor": "José Crisóstomo do Nascimento Silva", "uf": "AM", "comarca": "7º Juizado Especial Cível da Comarca de Manaus", "sistema": "Projudi", "processo": "0174503-14.2026.8.04.1000", "distribuicao": "2026-06-16", "objeto": "Plataforma", "valor": 26350.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - prazo conservador 10/07/2026", "defesa_deadline": "2026-07-10", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 4, "marca": "Betou", "autor": "FELIPE DA CRUZ CARDOSO DE DEUS", "uf": "BA", "comarca": "6ª VSJE DO CONSUMIDOR", "sistema": "Projudi", "processo": "0067212-15.2026.8.05.0001", "distribuicao": "2026-03-31", "objeto": "Autoexclusão", "valor": 50602.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando arquivamento", "honorarios": "Mensal", "defesa_bool": true}, {"num": 5, "marca": "Betou", "autor": "Luiz Ricardo Santos Fernandes", "uf": "BA", "comarca": "6ª VSJE DO CONSUMIDOR", "sistema": "Projudi", "processo": "0015498-70.2026.8.05.0080", "distribuicao": "2026-04-27", "objeto": "Autoexclusão", "valor": 64837.16, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 24/07/2026", "defesa_deadline": "2026-07-24", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 6, "marca": "Sorte", "autor": "Isaac Soares Silva", "uf": "BA", "comarca": "1ª Vara do Sistema dos Juizados - CAMAÇARI", "sistema": "Projudi", "processo": "0009455-46.2026.8.05.0039", "distribuicao": "2026-05-26", "objeto": "Plataforma", "valor": 47000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 23/09/2026", "defesa_deadline": "2026-09-23", "audiencia": "2026-09-25", "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 7, "marca": "Sorte", "autor": "Alexandre Santana Lavinsky", "uf": "BA", "comarca": "1ª Vara do Sistema dos Juizados - ITABUNA (VESP)", "sistema": "Projudi", "processo": "0009125-21.2026.8.05.0113", "distribuicao": "2026-05-29", "objeto": "Ludopatia", "valor": 29900.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 16/07/2026", "defesa_deadline": "2026-07-16", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 8, "marca": "Sorte", "autor": "Cleiton Silva de Jesus", "uf": "BA", "comarca": "20ª VSJE DO CONSUMIDOR (VESPERTINO)", "sistema": "Projudi", "processo": "0123985-80.2026.8.05.0001", "distribuicao": "2026-06-08", "objeto": "Propaganda enganosa", "valor": 13806.35, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 15/07/2026 - subsídios ok", "defesa_deadline": "2026-07-15", "audiencia": "2026-07-17", "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 9, "marca": "Sorte", "autor": "Pedro Henrique Leal da Silva Rios", "uf": "BA", "comarca": "\t1ª Vara do Sistema dos Juizados - JACOBINA", "sistema": "Projudi", "processo": "0002695-78.2026.8.05.0137 ", "distribuicao": "2026-06-03", "objeto": "Ludopatia", "valor": 28610.98, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 15/07/2026 - aguardando subsídios", "defesa_deadline": "2026-07-15", "audiencia": "2026-07-17", "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 10, "marca": "Betou", "autor": "Abraão Viana Cruz Lopes Braga", "uf": "CE", "comarca": "05ª Unidade Juizado Especial de Fortaleza", "sistema": "PJe", "processo": "3004085-67.2026.8.06.6001", "distribuicao": "2026-02-25", "objeto": "Autoexclusão", "valor": 49257.62, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 11, "marca": "Sorte", "autor": "Alef Alves dos Santos", "uf": "CE", "comarca": "21ª Unidade do Juizado Especial Cível da Comarca de Fortaleza", "sistema": "PJe", "processo": "3007428-71.2026.8.06.6001", "distribuicao": "2026-03-12", "objeto": "Autoexclusão", "valor": 10000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 12, "marca": "Fusion", "autor": "LUAN WEVERTON JUSTINO ALEXANDRE DA SILVA", "uf": "CE", "comarca": "2ª Vara Cível da Comarca de Crato", "sistema": "PJe", "processo": "3003937-95.2026.8.06.0071", "distribuicao": "2026-06-25", "objeto": "Ludopatia", "valor": 23123.87, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 17/07/2026", "defesa_deadline": "2026-07-17", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 13, "marca": "Betou", "autor": "Angel Bueno Peixoto", "uf": "DF", "comarca": "Vara Cível do Riacho Fundo", "sistema": "PJe", "processo": "0707025-29.2025.8.07.0017", "distribuicao": "2025-08-25", "objeto": "Plataforma", "valor": 574220.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 14, "marca": "Sorte", "autor": "Deliane dos Santos Amorim", "uf": "DF", "comarca": "12ª Vara Cível de Brasília", "sistema": "PJe", "processo": "0712542-29.2026.8.07.0001", "distribuicao": "2026-03-11", "objeto": "Ludopatia", "valor": 184080.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 15, "marca": "Sorte", "autor": "Ana Paula da Silva Strassmann", "uf": "ES", "comarca": "2ª Vara Cível de Colatina", "sistema": "PJe", "processo": "5013707-69.2024.8.08.0014", "distribuicao": "2024-12-06", "objeto": "Propaganda enganosa", "valor": 10000.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 16, "marca": "Sorte", "autor": "Maira Cavalcante de Almeida", "uf": "ES", "comarca": "1º Juizado de Guarapari", "sistema": "PJe", "processo": "5008427-62.2025.8.08.0021", "distribuicao": "2025-08-15", "objeto": "Plataforma", "valor": 29445.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 17, "marca": "Betou", "autor": "FILIPE BARCELOS BENTO", "uf": "ES", "comarca": "2ª Vara Cível de São Mateus", "sistema": "PJe", "processo": "5010282-95.2025.8.08.0047", "distribuicao": "2025-12-17", "objeto": "Ludopatia", "valor": 718087.69, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 18, "marca": "Fusion", "autor": "Luana Marcelino Benedito dos Santos", "uf": "ES", "comarca": "4º Juizado Especial Cível de Vila Velha", "sistema": "PJe", "processo": "5015342-51.2026.8.08.0035", "distribuicao": "2026-04-14", "objeto": "Plataforma", "valor": 8645.29, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 14/07/2026 - subsídios ok", "defesa_deadline": "2026-07-14", "audiencia": "2026-07-16", "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 19, "marca": "Betou", "autor": "Roger Costa Rodrigues", "uf": "ES", "comarca": "3º Juizado Especial Cível da Serra", "sistema": "PJe", "processo": "5014249-14.2026.8.08.0048", "distribuicao": "2026-04-15", "objeto": "Ludopatia", "valor": 64840.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 24/07/2026", "defesa_deadline": "2026-07-24", "audiencia": "2026-07-28", "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 20, "marca": "Sorte", "autor": "ELESSANDRA APARECIDA SERAFIM DO ESPÍRITO SANTO", "uf": "ES", "comarca": "Linhares - 2ª Vara Cível e Comercial", "sistema": "PJe", "processo": "5007433-70.2026.8.08.0030 ", "distribuicao": "2026-05-18", "objeto": "Ludopatia", "valor": 100000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso - Aguardando subsídios", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 21, "marca": "Sorte", "autor": "ADRIELE RAASCH OLIVEIRA", "uf": "ES", "comarca": "2ª Vara Cível da Comarca de Colatina", "sistema": "PJe", "processo": "5007809-07.2026.8.08.0014", "distribuicao": "2026-06-25", "objeto": "Ludopatia", "valor": 384252.27, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso - Aguardando subsídios", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 22, "marca": "X", "autor": "MINISTÉRIO PÚBLICO DO ESTADO DE GOIÁS", "uf": "GO", "comarca": "6ª Vara Cível de Goiânia", "sistema": "Projudi", "processo": "6128606-22.2024.8.09.0051", "distribuicao": "2024-12-12", "objeto": "Ação Civil Públoca", "valor": 1000000.0, "risco": "Remoto", "fase": "Recursal", "resultado": "Extinto", "defesa": "Não", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando acórdão", "honorarios": "Mensal", "defesa_bool": false}, {"num": 23, "marca": "Sorte e Betou", "autor": "Daniel Oliveira da Mota", "uf": "GO", "comarca": "30ª Vara Cível da Comarca de Goiania", "sistema": "Projudi", "processo": "5092090-49.2026.8.09.0051", "distribuicao": "2026-02-04", "objeto": "Ludopatia", "valor": 50000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 24, "marca": "Betou", "autor": "ELISANGELA CARDOSO GABELINE", "uf": "GO", "comarca": "Juizado de Aparecida de Goiânia ", "sistema": "Projudi", "processo": "5783506-09.2025.8.09.0011", "distribuicao": "2025-09-25", "objeto": "Ludopatia", "valor": 119579.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando acórdão", "honorarios": "Mensal", "defesa_bool": true}, {"num": 25, "marca": "Sorte", "autor": "Juliana Batista dos Santos", "uf": "GO", "comarca": "1° Vara Cível de Caiapônia ", "sistema": "Projudi", "processo": "5205056-39.2026.8.09.0023", "distribuicao": "2026-03-10", "objeto": "Ludopatia", "valor": 100000.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 26, "marca": "Sorte", "autor": "WELBER LOPES DE MELO", "uf": "GO", "comarca": "1ª Vara Cível de Trindade", "sistema": "Projudi", "processo": "5361294-96.2026.8.09.0149", "distribuicao": "2026-04-25", "objeto": "Ludopatia", "valor": 775358.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 10/07/2026 - aguardando subsídios", "defesa_deadline": "2026-07-10", "audiencia": "2026-07-14", "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 27, "marca": "Fusion", "autor": "Sarah Costa Ferreira Araujo", "uf": "GO", "comarca": "Anápolis - 3º Juizado Especial Cível", "sistema": "Projudi", "processo": "5338429-20.2026.8.09.0007", "distribuicao": "2026-04-17", "objeto": "Ludopatia", "valor": 40000.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": true}, {"num": 28, "marca": "Sorte", "autor": "Eduardo Sena Mendes", "uf": "GO", "comarca": "Juizado Especial Cível da Comarca de Nerópolis", "sistema": "Projudi", "processo": "5557162-26.2026.8.09.0112", "distribuicao": "2026-06-19", "objeto": "Autoexclusão", "valor": 40550.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 04/08/2026", "defesa_deadline": "2026-08-04", "audiencia": "2026-08-07", "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 29, "marca": "Fusion", "autor": "ALEX RIBEIRO DE MORAIS", "uf": "GO", "comarca": "7º Juizado Especial Cível (2ª UPJ dos Juizados Especiais Cíveis)", "sistema": "Projudi", "processo": "5482943-31.2026.8.09.0051", "distribuicao": "2026-05-28", "objeto": "Plataforma", "valor": 20000.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 24/06/2026 - subsídios ok", "defesa_deadline": "2026-06-24", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 30, "marca": "Sorte", "autor": "LUIZ PHELIPE DE MATOS FERREIRA", "uf": "MG", "comarca": "16º Juizado de Belo Horizonte", "sistema": "Eproc", "processo": "1015597-72.2026.8.13.0024", "distribuicao": "2026-01-30", "objeto": "Autoexclusão", "valor": 9721.02, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 31, "marca": "Fusion", "autor": "LUCIA DE FATIMA MILITAO", "uf": "MG", "comarca": "4ª Vara Cível de Juiz de Fora", "sistema": "Eproc", "processo": "1009491-56.2025.8.13.0145", "distribuicao": "2025-12-30", "objeto": "Plataforma", "valor": 370540.47, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": true}, {"num": 32, "marca": "Fusion", "autor": "AMANDA CHRISTINA PADIA SANTOS", "uf": "MG", "comarca": "2º Juizado de Belo Horizonte", "sistema": "Eproc", "processo": "1022368-66.2026.8.13.0024", "distribuicao": "2026-02-10", "objeto": "Ludopatia", "valor": 43461.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando acórdão", "honorarios": "Mensal", "defesa_bool": true}, {"num": 33, "marca": "Sorte", "autor": "João Victor Dantas Reis", "uf": "MG", "comarca": "3º Juizado da Comarca de Poço de Caldas", "sistema": "Eproc", "processo": "1002815-06.2026.8.13.0518", "distribuicao": "2026-03-13", "objeto": "Autoexclusão", "valor": 58350.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 34, "marca": "Sorte", "autor": "Vilmar Alves de Oliveira", "uf": "MG", "comarca": "5ª Vara Cível da Comarca de Juiz de Fora", "sistema": "Eproc", "processo": "1008354-05.2026.8.13.0145", "distribuicao": "2026-03-25", "objeto": "Ludopatia", "valor": 995128.85, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 35, "marca": "Sorte", "autor": "Marcos Martins da Silva", "uf": "MG", "comarca": "1000004-08.2026.8.13.0184", "sistema": "Eproc", "processo": "1000004-08.2026.8.13.0184", "distribuicao": "2026-04-13", "objeto": "Autoexclusão", "valor": 23590.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 36, "marca": "Sorte", "autor": "Silval Atila de Sousa Alves", "uf": "MG", "comarca": "9º JD da Comarca de Belo Horizonte", "sistema": "Eproc", "processo": "1072460-82.2025.8.13.0024", "distribuicao": "2025-10-20", "objeto": "Propaganda enganosa", "valor": 15740.9, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": true}, {"num": 37, "marca": "Betou", "autor": "Stherfhanno Ryan Lacerda Bueno", "uf": "MG", "comarca": "1º JD da Comarca de Uberlândia", "sistema": "Eproc", "processo": "1018947-71.2026.8.13.0702", "distribuicao": "2026-04-20", "objeto": "Ludopatia", "valor": 35976.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 38, "marca": "Sorte", "autor": "Francisco Bricio Rocha Peres", "uf": "MG", "comarca": "17ª Vara Cível da Comarca de Belo Horizonte", "sistema": "Eproc", "processo": "1070181-89.2026.8.13.0024 ", "distribuicao": "2026-04-24", "objeto": "Ludopatia", "valor": 135394.1, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 09/07 - subsídios ok", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 39, "marca": "Fusion", "autor": "Anderson Celestino", "uf": "MG", "comarca": "Unidade Jurisdicional Única do Juizado Especial da Comarca de Visconde do Rio Branco", "sistema": "Eproc", "processo": "1000720-76.2026.8.13.0720", "distribuicao": "2026-05-07", "objeto": "Autoexclusão", "valor": 46803.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando arquivamento", "honorarios": "Mensal", "defesa_bool": true}, {"num": 40, "marca": "Sorte e Betou", "autor": "Bibiana Souza Silva", "uf": "MG", "comarca": "4ª Unidade Jurisdicional Cível - 12º JD da Comarca de Belo Horizonte", "sistema": "Eproc", "processo": "1080009-12.2026.8.13.0024", "distribuicao": "2026-05-08", "objeto": "Autoexclusão", "valor": 63268.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": "2026-09-10", "concluso_sentenca": false, "status_juridico": "Aguardando arquivamento", "honorarios": "Mensal", "defesa_bool": false}, {"num": 41, "marca": "Betou", "autor": "Gustavo Gonçalves Duarte", "uf": "MG", "comarca": "Unidade Jurisdicional Única do Juizado Especial - 2º JD da Comarca de Barbacena", "sistema": "Eproc", "processo": "1003542-90.2026.8.13.0056", "distribuicao": "2026-05-22", "objeto": "Fraude", "valor": 13224.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 42, "marca": "Sorte", "autor": "Yuri Caixeta da Fonseca", "uf": "MG", "comarca": " 2ª Unidade Jurisdicional - 3º JD da Comarca de Juiz de Fora", "sistema": "Eproc", "processo": "1016421-56.2026.8.13.0145", "distribuicao": "2026-05-30", "objeto": "Plataforma", "valor": 6149.39, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 25/06/2026 - aguardando\n subsídios", "defesa_deadline": "2026-06-25", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": false}, {"num": 43, "marca": "Fusion", "autor": "GABRIEL DO CARMO COSTA", "uf": "MG", "comarca": "Vara Única da Comarca de Raul Soares", "sistema": "Eproc", "processo": "1000251-85.2026.8.13.0540", "distribuicao": "2026-06-01", "objeto": "Ludopatia", "valor": 202000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 44, "marca": "Sorte", "autor": "Phelipe Peres de Figueiredo", "uf": "MS", "comarca": "1° Vara Cível de Mato Grosso do Sul", "sistema": "E-saj", "processo": "0803565-15.2026.8.12.0002", "distribuicao": "2026-03-26", "objeto": "Ludopatia", "valor": 315919.58, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 06/07/2026 - subsídios ok", "defesa_deadline": "2026-07-06", "audiencia": "2026-07-08", "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 45, "marca": "Sorte", "autor": "Lucas Dayton Lima Guimarães", "uf": "MS", "comarca": "13° Vara Cível de Campo Grande", "sistema": "E-saj", "processo": "0815702-32.2026.8.12.0001", "distribuicao": "2026-03-19", "objeto": "Ludopatia", "valor": 86640.82, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 46, "marca": "Betou", "autor": "Beatriz Magalhães Leite", "uf": "MS", "comarca": "Juízo da 1ª Vara do Juizado Especial Cível e Criminal de Três Lagoas", "sistema": "Eproc", "processo": "5000016-82.2026.8.12.0021", "distribuicao": "2026-04-10", "objeto": "Ludopatia", "valor": 78000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 12/08/26", "defesa_deadline": "2026-08-12", "audiencia": "2026-08-18", "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 47, "marca": "Fusion", "autor": "ROMARIO QUEIROZ DELPHIN", "uf": "MT", "comarca": "Nucleo de Juizado Especial", "sistema": "PJe", "processo": "1005097-70.2026.8.11.0001", "distribuicao": "2026-01-30", "objeto": "Autoexclusão", "valor": 19138.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 48, "marca": "Fusion", "autor": "Tayna Soares da Cunha Pionorio", "uf": "MT", "comarca": "4ª Juizado Especial Cível de Cuiabá", "sistema": "PJe", "processo": "1014386-27.2026.8.11.0001", "distribuicao": "2026-03-13", "objeto": "Autoexclusão", "valor": 32413.62, "risco": "Remoto", "fase": "Recursal", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando arquivamento", "honorarios": "Mensal", "defesa_bool": true}, {"num": 49, "marca": "Fusion", "autor": "José Carlos Marques Junior", "uf": "MT", "comarca": "2ª VARA CÍVEL DE PRIMAVERA DO LESTE", "sistema": "PJe", "processo": "1003384-49.2026.8.11.0037", "distribuicao": "2026-03-19", "objeto": "Ludopatia", "valor": 385000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 50, "marca": "Betou", "autor": "João de Jesus Pinho Filho", "uf": "MT", "comarca": "1º JUIZADO ESPECIAL DE RONDONÓPOLIS", "sistema": "PJe", "processo": "1007346-85.2026.8.11.0003", "distribuicao": "2026-03-23", "objeto": "Autoexclusão", "valor": 17330.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 51, "marca": "Sorte", "autor": "Robson Bispo de Abreu", "uf": "MT", "comarca": "2ª VARA CÍVEL DE POXORÉU", "sistema": "PJe", "processo": "1000805-03.2026.8.11.0014", "distribuicao": "2026-05-09", "objeto": "Ludopatia", "valor": 339799.8, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 24/06/2026 - subsídios ok", "defesa_deadline": "2026-06-24", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 52, "marca": "Betou", "autor": "ANDERSON GOIS PEDROSA", "uf": "PA", "comarca": "2ª Vara Cível de Paragominas", "sistema": "PJe", "processo": "0807290-75.2025.8.14.0039", "distribuicao": "2025-10-27", "objeto": "Fraude", "valor": 154700.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 53, "marca": "Fusion", "autor": "SAULO CAVALCANTI ROSA E SILVA", "uf": "PE", "comarca": "24º Juizado de Recife", "sistema": "PJe", "processo": "0006611-48.2026.8.17.8201", "distribuicao": "2026-02-20", "objeto": "Autoexclusão", "valor": 26865.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 54, "marca": "Betou", "autor": "Michael Soares da Silva", "uf": "PE", "comarca": "3ª Vara Cível da Comarca de Petrolina", "sistema": "Pje", "processo": "0006311-70.2026.8.17.3130 ", "distribuicao": "2026-04-24", "objeto": "Plataforma", "valor": 28000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 55, "marca": "Fusion", "autor": "José Coutinho de Barros Filho", "uf": "PE", "comarca": "2ª Vara da Comarca de Paudalho", "sistema": "Pje", "processo": "0000709-54.2026.8.17.3080", "distribuicao": "2026-05-08", "objeto": "Ludopatia", "valor": 311386.1, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não  06/08", "defesa_deadline": null, "audiencia": "2026-08-11", "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 56, "marca": "Fusion", "autor": "Daiane Maria de Souza Coutinho", "uf": "PE", "comarca": "1ª VARA DA COMARCA DE PAUDALHO", "sistema": "Pje", "processo": "0000708-69.2026.8.17.3080", "distribuicao": "2026-05-08", "objeto": "Ludopatia", "valor": 235286.88, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - aguardando subsídios", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 57, "marca": "Fusion", "autor": "LARISSA DE SOUSA ALVES", "uf": "PI", "comarca": "2ª Vara Cível de Altos", "sistema": "PJe", "processo": "0804691-64.2025.8.18.0036", "distribuicao": "2025-10-10", "objeto": "Ludopatia", "valor": 52298.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 14/07/2026 - subsídios ok", "defesa_deadline": "2026-07-14", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 58, "marca": "Fusion", "autor": "PEDRO FRANCISCO DA SILVA NETO", "uf": "PI", "comarca": "CEJUSC Teresina", "sistema": "PJe", "processo": "0804781-17.2026.8.18.0140", "distribuicao": "2026-01-27", "objeto": "Autoexclusão", "valor": 5760.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 59, "marca": "Sorte", "autor": "Marcelo do Nascimento Ferreira", "uf": "PI", "comarca": "2ª Vara da Comarca de Floriano", "sistema": "PJe", "processo": "0803376-88.2026.8.18.0028", "distribuicao": "2026-05-20", "objeto": "Ludopatia", "valor": 500000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 60, "marca": "Sorte", "autor": "ELDER ROMULO NUNES BORGES", "uf": "PI", "comarca": "JECC Floriano Sede Cível", "sistema": "Pje", "processo": "0802213-10.2026.8.18.0146", "distribuicao": "2026-05-13", "objeto": "Ludopatia", "valor": 16590.95, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 16/09/2026", "defesa_deadline": "2026-09-16", "audiencia": "2026-09-21", "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 61, "marca": "X", "autor": "JARANDIR CARNEIRO DE OLIVEIRA", "uf": "PR", "comarca": "12ª Vara Cível de Curitiba", "sistema": "Projudi", "processo": "0001315-71.2025.8.16.0194", "distribuicao": "2025-01-29", "objeto": "Fraude", "valor": 39531.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": true, "status_juridico": "Aguardando acórdão", "honorarios": "Mensal", "defesa_bool": true}, {"num": 62, "marca": "Sorte", "autor": "RODRIGO JOSE STANKIEVITZ", "uf": "PR", "comarca": "1ª Vara Cível de União da Vitória", "sistema": "Projudi", "processo": "0000178-80.2026.8.16.0174", "distribuicao": "2026-01-09", "objeto": "Ludopatia", "valor": 465443.52, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 63, "marca": "Fusion", "autor": "LUIZ GUSTAVO GONZAGA", "uf": "PR", "comarca": "8º Juizado Especial Cível de Curitiba", "sistema": "Projudi", "processo": "0002566-29.2026.8.16.0182", "distribuicao": "2026-01-27", "objeto": "Autoexclusão", "valor": 11533.71, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 64, "marca": "Betou", "autor": "Raquel Ribeiro Campos Paul Marchioro", "uf": "PR", "comarca": "2º Juizado Especial Cível  de São José dos Pinhais", "sistema": "Projudi", "processo": "0003507-32.2026.8.16.0035", "distribuicao": "2026-02-24", "objeto": "Autoexclusão", "valor": 16359.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 65, "marca": "Betou", "autor": "Richard Alves dos Reis", "uf": "PR", "comarca": "2ª Vara Cível de Pato Branco", "sistema": "Projudi", "processo": "0004039-09.2026.8.16.0131 ", "distribuicao": "2026-04-10", "objeto": "Ludopatia", "valor": 2004190.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - minuta até 01/07/2026 (conservador) - aguardando subsídios;", "defesa_deadline": "2026-07-01", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 66, "marca": "Sorte", "autor": "Marlon Guilherme de Souza", "uf": "PR", "comarca": "1ª Vara Cível de São José dos Pinhais", "sistema": "Projudi", "processo": "0008935-92.2026.8.16.0035", "distribuicao": "2026-04-27", "objeto": "Ludopatia", "valor": 400000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 24/06/2026 - subsídios ok", "defesa_deadline": "2026-06-24", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 67, "marca": "Betou", "autor": "ANDRE GUSTAVO SANTANA HUIDA", "uf": "PR", "comarca": "Juízo Único de Campina da Lagoa", "sistema": "Eproc", "processo": "6000001-74.2026.8.16.0057 ", "distribuicao": "2026-05-21", "objeto": "Autoexclusão", "valor": 15000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 23/07/2026", "defesa_deadline": "2026-07-23", "audiencia": "2026-07-27", "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 68, "marca": "Fusion", "autor": "Rodrigo Henrique Cardoso Galvão", "uf": "PR", "comarca": "VARA CÍVEL DE IBIPORÃ", "sistema": "Projudi", "processo": "0002824-24.2026.8.16.0090", "distribuicao": "2026-05-04", "objeto": "Ludopatia", "valor": 50000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - aguardando envio dos autos ao CEJUSC", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 69, "marca": "Betou", "autor": "Thais Milleo Nogueira", "uf": "PR", "comarca": "Vara Cível de Pinhais", "sistema": "Projudi", "processo": "0006996-83.2026.8.16.0033", "distribuicao": "2026-06-12", "objeto": "Ludopatia", "valor": 57000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 70, "marca": "Betou", "autor": "ANDERSON ROBERTO GREFF", "uf": "PR", "comarca": "3ª Vara Cível de Foz do Iguaçu", "sistema": "Projudi", "processo": "0015962-44.2026.8.16.0030", "distribuicao": "2026-05-13", "objeto": "Ludopatia", "valor": 273135.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 71, "marca": "Sorte", "autor": "MAURICIO ALMEIDA CORREA", "uf": "RJ", "comarca": "2ª Vara Cível de Volta Redonda", "sistema": "PJe", "processo": "0822050-41.2024.8.19.0066", "distribuicao": "2024-12-19", "objeto": "Ludopatia", "valor": 359029.9, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando inicial", "honorarios": "Mensal", "defesa_bool": false}, {"num": 72, "marca": "Betou", "autor": "SIDNEY ALEXSANDRO FERREIRA DA PAZ", "uf": "RJ", "comarca": "2º Juizado de Duque de Caxias", "sistema": "PJe", "processo": "0855734-58.2025.8.19.0021", "distribuicao": "2025-11-10", "objeto": "Propaganda enganosa", "valor": 21479.54, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando acórdão", "honorarios": "Mensal", "defesa_bool": true}, {"num": 73, "marca": "Sorte", "autor": "AMANDA DA SILVA SANTOS", "uf": "RJ", "comarca": "2ª Vara Cível de Nova Friburgo", "sistema": "PJe", "processo": "0812667-92.2025.8.19.0037", "distribuicao": "2025-12-09", "objeto": "Ludopatia", "valor": 340000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando setença", "honorarios": "Mensal", "defesa_bool": true}, {"num": 74, "marca": "Betou", "autor": "Renata Vasquez Molina", "uf": "RJ", "comarca": "4ª Vara Cível da Comarca de Volta Redonda", "sistema": "Eproc", "processo": "3002754-44.2026.8.19.0066", "distribuicao": "2026-04-23", "objeto": "Ludopatia", "valor": 231495.73, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 75, "marca": "Fusion", "autor": "ALESSANDRO SOUZA DE OLIVEIRA", "uf": "RJ", "comarca": "17ª Vara Cível da Capital", "sistema": "Eproc", "processo": "3007776-84.2026.8.19.0001", "distribuicao": "2026-01-22", "objeto": "Ludopatia", "valor": 20000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 76, "marca": "Sorte", "autor": "Nazario Martins Mororó", "uf": "RJ", "comarca": "5ª Vara Cível da Regional de Madureira", "sistema": "Eproc", "processo": "3099347-39.2026.8.19.0001", "distribuicao": "2026-05-29", "objeto": "Plataforma", "valor": 15000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 77, "marca": "Sorte", "autor": "VANESSA LOPES DE AZEREDO", "uf": "RJ", "comarca": " 31ª Vara Cível da Comarca da Capital", "sistema": "Eproc", "processo": "3115583-66.2026.8.19.0001", "distribuicao": "2026-06-24", "objeto": "Ludopatia", "valor": 300000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 78, "marca": "Sorte", "autor": "José Anderson da Silva", "uf": "RN", "comarca": "Vara Única da Comarca de Umarizal", "sistema": "PJe", "processo": "0800689-17.2026.8.20.5159", "distribuicao": "2026-05-13", "objeto": "Ludopatia", "valor": 254261.68, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 79, "marca": "Sorte", "autor": "WALISSON DUTRA LOPES", "uf": "RO", "comarca": "1ª Vara Cível de Rolim de Moura", "sistema": "PJe", "processo": "7004491-04.2026.8.22.0010", "distribuicao": "2026-05-25", "objeto": "Ludopatia", "valor": 310000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 80, "marca": "Sorte", "autor": "Rodrigo Castelo Branco", "uf": "RS", "comarca": "1º Juizado de Porto Alegre", "sistema": "Eproc", "processo": "5213737-65.2025.8.21.0001", "distribuicao": "2025-08-20", "objeto": "Plataforma", "valor": 1050.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Execução", "honorarios": "Mensal", "defesa_bool": true}, {"num": 81, "marca": "Sorte", "autor": "Gabriel Oliveira da Silva", "uf": "RS", "comarca": "Juizado Especial Cível da Comarca de Cachoeira do Sul", "sistema": "Eproc", "processo": "5004224-08.2026.8.21.0006 ", "distribuicao": "2026-04-27", "objeto": "Autoexclusão", "valor": 25661.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": "2026-07-13", "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 82, "marca": "Fusion", "autor": "Marcos Goulart Hensing", "uf": "RS", "comarca": "Juizado Especial Cível da Comarca de Novo Hamburgo", "sistema": "Eproc", "processo": "5011585-37.2026.8.21.0019 ", "distribuicao": "2026-04-28", "objeto": "Autoexclusão", "valor": 13115.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Arquivado", "honorarios": "Mensal", "defesa_bool": true}, {"num": 83, "marca": "Fusion", "autor": "Jonathan da Silva Cerchiaro", "uf": "RS", "comarca": "1ª Vara Cível da Comarca de Rio Grande", "sistema": "Eproc", "processo": "5015412-44.2026.8.21.0023 ", "distribuicao": "2026-06-22", "objeto": "Ludopatia", "valor": 80227.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 84, "marca": "Fusion", "autor": "EDUARDO DA SILVA", "uf": "SC", "comarca": "2ª Vara Cível de Ituporanga", "sistema": "Eproc", "processo": "5007877-78.2025.8.24.0035", "distribuicao": "2025-12-04", "objeto": "Ludopatia", "valor": 220000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 85, "marca": "Sorte e Fusion", "autor": "WYCTOR DOWGLAS BORGES TERTULIANO", "uf": "SC", "comarca": "2º Juizado de Chapecó", "sistema": "Eproc", "processo": "5001314-85.2026.8.24.0018", "distribuicao": "2026-01-19", "objeto": "Autoexclusão", "valor": 4303.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - audiência cancelada", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 86, "marca": "Fusion", "autor": "ESTHER MIRIA LIMA", "uf": "SC", "comarca": "2º Juizado Especial Cível de Joinville", "sistema": "Eproc", "processo": "5005770-18.2026.8.24.0038", "distribuicao": "2026-02-10", "objeto": "Propaganda enganosa", "valor": 17500.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 23/09/26", "defesa_deadline": "2026-09-23", "audiencia": "2026-09-28", "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 87, "marca": "Fusion", "autor": "Anderson Mario Guimarães Farias", "uf": "SC", "comarca": "2ª Vara Cível da Comarca de Itajaí", "sistema": "Eproc", "processo": "5016153-70.2026.8.24.0033", "distribuicao": "2026-06-09", "objeto": "Plataforma", "valor": 77372.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 03/07/2026 - aguardando subsídios", "defesa_deadline": "2026-07-03", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 88, "marca": "Betou", "autor": "Carlos André Guedes Ramos", "uf": "SC", "comarca": "2ª Vara Cível da Comarca de Criciúma", "sistema": "Eproc", "processo": "5014379-44.2026.8.24.0020", "distribuicao": "2026-06-04", "objeto": "Ludopatia", "valor": 180000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 08/07/2026 - aguardando subsídios", "defesa_deadline": "2026-07-08", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Validar relatório", "honorarios": "Mensal", "defesa_bool": false}, {"num": 89, "marca": "Sorte", "autor": "ALEXANDRE JUNIOR BRITO ALEGRE", "uf": "SP", "comarca": "4ª Vara Cível de Barueri", "sistema": "Eproc", "processo": "4011464-69.2025.8.26.0068", "distribuicao": "2025-12-29", "objeto": "Ludopatia", "valor": 237595.08, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 90, "marca": "Betou", "autor": "LEANDRO DE MORAIS LIMA NETO", "uf": "SP", "comarca": "6ª Vara Civel da Comarca de Santo Andre", "sistema": "Eproc", "processo": "4008024-28.2026.8.26.0554", "distribuicao": "2026-04-08", "objeto": "Ludopatia", "valor": 39484.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 91, "marca": "X", "autor": "MARCOS PAULO DOS SANTOS", "uf": "SP", "comarca": "Juizado de Praia Grande", "sistema": "Eproc", "processo": "4004265-30.2025.8.26.0477", "distribuicao": "2025-10-15", "objeto": "Ludopatia", "valor": 100.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Arquivado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 92, "marca": "Sorte", "autor": "LAIS MENEZES LOPES", "uf": "SP", "comarca": "4ª Vara Cível - Regional I - Santana", "sistema": "Eproc", "processo": "4004299-41.2026.8.26.0001", "distribuicao": "2026-02-10", "objeto": "Ludopatia", "valor": 401563.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 93, "marca": "Betou", "autor": "MOHAMAD SEME SAYED", "uf": "SP", "comarca": "2º Juizado de Barueri", "sistema": "Eproc", "processo": "4002773-32.2026.8.26.0068", "distribuicao": "2026-02-12", "objeto": "Autoexclusão", "valor": 64489.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "N/A", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 94, "marca": "Sorte", "autor": "PEDRO HENRIQUE ANDRADE DE SOUZA", "uf": "SP", "comarca": "2ª Vara Cível da Comarca de Cruzeiro", "sistema": "Eproc", "processo": "4000613-61.2026.8.26.0156", "distribuicao": "2026-02-25", "objeto": "Ludopatia", "valor": 979711.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 95, "marca": "X", "autor": "GROW EMPREENDIMENTOS DIGITAIS LTDA.", "uf": "SP", "comarca": "34ª Vara Cível de São Paulo", "sistema": "Eproc", "processo": "4005344-11.2025.8.26.0003", "distribuicao": "2025-09-01", "objeto": "Devolução de Pagamento", "valor": 1837206.58, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "N/A", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Proposta individualizada", "defesa_bool": false}, {"num": 96, "marca": "X", "autor": "SORTENABET GAMING BRASIL S.A.", "uf": "SP", "comarca": "4ª Vara Cível de Barueri", "sistema": "Eproc", "processo": "4009701-33.2025.8.26.0068", "distribuicao": "2025-11-28", "objeto": "Descumprimento contratual e execução de multa", "valor": 1810790.0, "risco": "Possível", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "N/A", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Proposta individualizada", "defesa_bool": false}, {"num": 97, "marca": "X", "autor": "ISAURA PORFIRIA DA SILVA NETA", "uf": "SP", "comarca": "VT de Caraguatatuba", "sistema": "PJe", "processo": "0010106-13.2025.5.15.0063", "distribuicao": "2025-01-17", "objeto": "Trabalhista (vínculo empregatício)", "valor": 45331.91, "risco": "Remoto", "fase": "Recursal", "resultado": "Improcedente", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Proposta individualizada", "defesa_bool": true}, {"num": 98, "marca": "X", "autor": "Andressa Larissa Fraga Santos", "uf": "SP", "comarca": "1ª VT de Barueri", "sistema": "PJe", "processo": "1001973-96.2025.5.02.0201", "distribuicao": "2025-08-22", "objeto": "Trabalhista (vínculo empregatício)", "valor": 723580.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - ação trabalhista", "defesa_deadline": null, "audiencia": "2026-08-21", "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 99, "marca": "X", "autor": "Gustavo Silva dos Reis", "uf": "SP", "comarca": "1ª VT de Barueri", "sistema": "PJe", "processo": "1000537-68.2026.5.02.0201", "distribuicao": "2026-03-04", "objeto": "Trabalhista (vínculo empregatício)", "valor": 57775.86, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": true}, {"num": 100, "marca": "Betou", "autor": "Marcelo Cesário dos Santos", "uf": "SP", "comarca": "Vara do Juizado Especial Cível e Criminal \nda Comarca de São Vicente", "sistema": "Eproc", "processo": "4002029-23.2026.8.26.0590", "distribuicao": "2026-03-04", "objeto": "Ludopatia", "valor": 43484.76, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - 14/07/2026 - subsídios ok", "defesa_deadline": "2026-07-14", "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 101, "marca": "Sorte e Betou", "autor": "Alan Bruno Guimarães Mendes", "uf": "SP", "comarca": "1ª Vara Cível - Foro Central Cível", "sistema": "Eproc", "processo": "4061021-89.2026.8.26.0100", "distribuicao": "2026-04-13", "objeto": "Ludopatia", "valor": 283030.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - verificar", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 102, "marca": "Sorte", "autor": "Marco Antônio de Souza", "uf": "SP", "comarca": "2ª Vara da Comarca de Lençóis Paulista", "sistema": "Eproc", "processo": "4001082-06.2026.8.26.0319", "distribuicao": "2026-04-13", "objeto": "Ludopatia", "valor": 119305.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 103, "marca": "Fusion", "autor": "Willian Gabriel Marques", "uf": "SP", "comarca": "1ª Vara da Comarca de São José do Rio Pardo", "sistema": "Eproc", "processo": "4000731-41.2026.8.26.0575", "distribuicao": "2026-04-14", "objeto": "Ludopatia", "valor": 732466.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": false}, {"num": 104, "marca": "BetFusion", "autor": "Dayane Xavier dos Santos Looze de Sousa", "uf": "SP", "comarca": "Juízo Titular I - CEJUSC - Regional II - Santo Amaro", "sistema": "Eproc", "processo": "4030986-52.2026.8.26.0002", "distribuicao": "2026-04-22", "objeto": "Ludopatia", "valor": 32000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 105, "marca": "Sorte", "autor": "Matheus Henrique Morong Lopes da Silva", "uf": "SP", "comarca": "Juízo Titular I - 2ª Vara Cível da Comarca de Barueri", "sistema": "Eproc", "processo": "4066791-63.2026.8.26.0100 ", "distribuicao": "2026-04-21", "objeto": "Aguardando acesso à integra", "valor": 20000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 106, "marca": "Fusion", "autor": "Gustavo Cantuaria Matos", "uf": "SP", "comarca": "3ª Vara do Juizado Especial Cível da Comarca de Guarulhos", "sistema": "Eproc", "processo": "4017509-72.2026.8.26.0224 ", "distribuicao": "2026-04-27", "objeto": "Autoexclusão", "valor": 12000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando arquivamento", "honorarios": "Mensal", "defesa_bool": false}, {"num": 107, "marca": "Fusion", "autor": "Luiz Gustavo Alves da Silva", "uf": "SP", "comarca": "Vara do Juizado Especial Cível da Comarca de São Carlos", "sistema": "Eproc", "processo": "4004391-70.2026.8.26.0566 ", "distribuicao": "2026-04-27", "objeto": "Autoexclusão", "valor": 17480.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando arquivamento", "honorarios": "Mensal", "defesa_bool": true}, {"num": 108, "marca": "Fusion", "autor": "Pablo Diego da Silva Nunes", "uf": "SP", "comarca": "1ª Vara da Comarca de Mirandópolis", "sistema": "Eproc", "processo": "4000796-14.2026.8.26.0356", "distribuicao": "2026-04-29", "objeto": "Ludopatia", "valor": 330000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 109, "marca": "Sorte", "autor": "Raphael de Grazia Faria Peres", "uf": "SP", "comarca": "2ª Vara do Juizado Especial Cível e Criminal da Comarca de Barueri", "sistema": "Eproc", "processo": "4006587-52.2026.8.26.0068", "distribuicao": "2026-04-01", "objeto": "Autoexclusão", "valor": 38119.89, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando arquivamento", "honorarios": "Mensal", "defesa_bool": true}, {"num": 110, "marca": "Sorte", "autor": "Rafael Lucas Galdino", "uf": "SP", "comarca": "5ª Vara Cível da Comarca de Indaiatuba", "sistema": "Eproc", "processo": "4004221-82.2026.8.26.0248", "distribuicao": "2026-04-30", "objeto": "Ludopatia", "valor": 263565.85, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 111, "marca": "Fusion", "autor": "Bruno Henrique Alves dos Santos", "uf": "SP", "comarca": "Vara do Juizado Especial Cível e Criminal da Comarca de Embu das Artes", "sistema": "Eproc", "processo": "4003182-72.2026.8.26.0176", "distribuicao": "2026-05-15", "objeto": "Autoexclusão", "valor": 42828.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 112, "marca": "Fusion", "autor": "Matheus de Sá Zorzetti", "uf": "SP", "comarca": "Vara do Juizado Especial Cível - Regional VII - Itaquera", "sistema": "Eproc", "processo": "4016117-69.2026.8.26.0007", "distribuicao": "2026-05-20", "objeto": "Autoexclusão", "valor": 47852.12, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Sim", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Aguardando minuta da defesa", "honorarios": "Mensal", "defesa_bool": true}, {"num": 113, "marca": "X", "autor": "Maria Paula Zacaria", "uf": "SP", "comarca": "Vara do Juizado Especial Cível da Comarca de Itu", "sistema": "Eproc", "processo": "0004293-91.2024.8.26.0286", "distribuicao": "2024-10-14", "objeto": "Plataforma", "valor": 26200.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - dispensados de recurso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 114, "marca": "Betou", "autor": "Rafaela Cristina Rodrigues", "uf": "SP", "comarca": "Vara Única da Comarca de Itaporanga", "sistema": "Eproc", "processo": "4000337-61.2026.8.26.0275", "distribuicao": "2026-06-02", "objeto": "Ludopatia", "valor": 188452.18, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - verificar", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 115, "marca": "Sorte", "autor": "Leonardo Keber Segantin de Carvalho", "uf": "SP", "comarca": "4ª Vara Cível da Comarca de Jaú", "sistema": "Eproc", "processo": "4003588-06.2026.8.26.0302", "distribuicao": "2026-06-01", "objeto": "Ludopatia", "valor": 20000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 116, "marca": "Sorte", "autor": "GIOVANA DE OLIVEIRA VASQUES", "uf": "SP", "comarca": "3ª Vara da Comarca de Pirassununga", "sistema": "Eproc", "processo": "4001524-43.2026.8.26.0457", "distribuicao": "2026-06-02", "objeto": "Plataforma", "valor": 69159.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}, {"num": 117, "marca": "Betou", "autor": "Tainara de Jesus Silva", "uf": "SP", "comarca": "5ª Vara Cível - Regional XI - Pinheiros", "sistema": "Eproc", "processo": "4011464-12.2026.8.26.0011", "distribuicao": "2026-06-06", "objeto": "Ludopatia", "valor": 120000.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 118, "marca": "Sorte", "autor": "Geralda Teixeira Matos Neta", "uf": "SP", "comarca": "1ª Vara do Juizado Especial Cível da Comarca de Guarulhos", "sistema": "Eproc", "processo": "4025682-85.2026.8.26.0224", "distribuicao": "2026-06-16", "objeto": "Autoexclusão", "valor": 19994.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 119, "marca": "Sorte", "autor": "Leticia Ramos de Azevedo", "uf": "SP", "comarca": "4ª Vara Cível da Comarca de Ribeirão Preto", "sistema": "Eproc", "processo": "4023374-06.2026.8.26.0506", "distribuicao": "2026-06-19", "objeto": "Ludopatia", "valor": 45955.04, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 120, "marca": "Betou", "autor": "Ricardo Rodarte da Silva", "uf": "SP", "comarca": "Vara do Juizado Especial Cível e Criminal da Comarca de Sumaré", "sistema": "Eproc", "processo": "4004978-75.2026.8.26.0604", "distribuicao": "2026-06-17", "objeto": "Autoexclusão", "valor": 43696.0, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não - sem prazo em curso", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Pendente de análise", "honorarios": "Mensal", "defesa_bool": false}, {"num": 121, "marca": "X", "autor": "VICTOR HENRIQUE SECURATI BOARETTO", "uf": "SP", "comarca": "Vara do Juizado Especial Cível da Comarca de Santo André", "sistema": "Eproc", "processo": "4015566-97.2026.8.26.0554", "distribuicao": "2026-06-26", "objeto": "Aguardando acesso à integra", "valor": 56083.21, "risco": "Remoto", "fase": "Conhecimento", "resultado": "Em andamento", "defesa": "Não", "defesa_deadline": null, "audiencia": null, "concluso_sentenca": false, "status_juridico": "Não classificado", "honorarios": "Mensal", "defesa_bool": false}];
+</script>
+<script>
+const TODAY = new Date('2026-07-07');
+const fmtBRL = n => 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtDate = s => { if(!s) return '—'; const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; };
+const daysUntil = s => Math.ceil((new Date(s) - TODAY) / 86400000);
+
+const COLORS = {
+  blue:'#2f6fed', teal:'#0f9b8e', amber:'#e8a33d', red:'#d64545', green:'#3fae6a',
+  navy:'#16294a', slate:'#7c8aa5', purple:'#8b6fed', pink:'#e86fa0'
+};
+const PALETTE = [COLORS.blue, COLORS.teal, COLORS.amber, COLORS.red, COLORS.green, COLORS.purple, COLORS.pink, COLORS.slate, COLORS.navy, '#4fb8e0'];
+
+Chart.defaults.font.family = "'Segoe UI', Arial, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#5a6478';
+
+function count(rows, key){
+  const m = {};
+  rows.forEach(r => { const v = r[key] || 'Não informado'; m[v] = (m[v]||0)+1; });
+  return m;
+}
+function sortEntriesDesc(obj){
+  return Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+}
+
+/* ---------------- KPIs ---------------- */
+function renderKPIs(){
+  const total = DATA.length;
+  const valorTotal = DATA.reduce((s,r)=>s+(r.valor||0),0);
+  const remoto = DATA.filter(r=>r.risco==='Remoto').length;
+  const comDefesa = DATA.filter(r=>r.defesa_bool).length;
+  const proximos15 = DATA.filter(r=>{
+    const d = r.defesa_deadline || r.audiencia;
+    if(!d) return false;
+    const du = daysUntil(d);
+    return du>=0 && du<=15;
+  }).length;
+
+  const kpis = [
+    {label:'Processos ativos', value: total, sub:'+ 11 arquivados no histórico', accent:''},
+    {label:'Valor total em causa', value: fmtBRL(valorTotal), sub:'Soma de todos os processos ativos', accent:'blue'},
+    {label:'Risco remoto', value: Math.round(remoto/total*100)+'%', sub: remoto+' de '+total+' processos', accent:'green'},
+    {label:'Com defesa apresentada', value: Math.round(comDefesa/total*100)+'%', sub: comDefesa+' de '+total+' processos', accent:'amber'},
+    {label:'Prazos/audiências em 15 dias', value: proximos15, sub:'Requer atenção imediata', accent:'red'},
+  ];
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = kpis.map(k=>`
+    <div class="kpi ${k.accent?'accent-'+k.accent:''}">
+      <div class="label">${k.label}</div>
+      <div class="value">${k.value}</div>
+      <div class="sub">${k.sub}</div>
+    </div>`).join('');
+}
+
+/* ---------------- Chart: por objeto ---------------- */
+function renderObjeto(){
+  const c = sortEntriesDesc(count(DATA,'objeto'));
+  new Chart(document.getElementById('chartObjeto'), {
+    type:'bar',
+    data:{
+      labels:c.map(x=>x[0]),
+      datasets:[{ data:c.map(x=>x[1]), backgroundColor: COLORS.blue, borderRadius:6, maxBarThickness:38 }]
+    },
+    options:{
+      indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{ x:{ grid:{color:'#eef1f7'}, ticks:{precision:0} }, y:{ grid:{display:false} } }
+    }
+  });
+}
+
+/* ---------------- Chart: risco ---------------- */
+function riscoColor(r){
+  if(r==='Remoto') return COLORS.green;
+  if(r==='Possível') return COLORS.amber;
+  if(r==='Provável') return COLORS.red;
+  return COLORS.slate;
+}
+function renderRisco(){
+  const c = sortEntriesDesc(count(DATA,'risco'));
+  new Chart(document.getElementById('chartRisco'), {
+    type:'doughnut',
+    data:{ labels:c.map(x=>x[0]), datasets:[{ data:c.map(x=>x[1]), backgroundColor:c.map(x=>riscoColor(x[0])), borderWidth:2, borderColor:'#fff' }] },
+    options:{ plugins:{ legend:{ position:'bottom' } }, cutout:'62%' }
+  });
+
+  const valores = {};
+  DATA.forEach(r=>{ const k=r.risco||'Não informado'; valores[k]=(valores[k]||0)+(r.valor||0); });
+  const entries = Object.entries(valores).sort((a,b)=>b[1]-a[1]);
+  new Chart(document.getElementById('chartRiscoValor'), {
+    type:'bar',
+    data:{ labels:entries.map(x=>x[0]), datasets:[{ data:entries.map(x=>x[1]), backgroundColor: entries.map(x=>riscoColor(x[0])), borderRadius:6, maxBarThickness:60 }] },
+    options:{
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => fmtBRL(ctx.raw) } } },
+      scales:{ y:{ grid:{color:'#eef1f7'}, ticks:{ callback:v=>'R$ '+(v/1000).toFixed(0)+'k' } }, x:{ grid:{display:false} } }
+    }
+  });
+}
+
+/* ---------------- Chart: UF ---------------- */
+function renderUF(){
+  const c = sortEntriesDesc(count(DATA,'uf'));
+  new Chart(document.getElementById('chartUF'), {
+    type:'bar',
+    data:{ labels:c.map(x=>x[0]), datasets:[{ data:c.map(x=>x[1]), backgroundColor: COLORS.teal, borderRadius:6, maxBarThickness:34 }] },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{ y:{ grid:{color:'#eef1f7'}, ticks:{precision:0} }, x:{ grid:{display:false} } }
+    }
+  });
+}
+
+/* ---------------- Chart: fase + defesa ---------------- */
+function renderFase(){
+  const c = sortEntriesDesc(count(DATA,'fase'));
+  new Chart(document.getElementById('chartFase'), {
+    type:'doughnut',
+    data:{ labels:c.map(x=>x[0]), datasets:[{ data:c.map(x=>x[1]), backgroundColor: PALETTE, borderWidth:2, borderColor:'#fff' }] },
+    options:{ plugins:{ legend:{ position:'bottom' } }, cutout:'62%' }
+  });
+
+  const simN = DATA.filter(r=>r.defesa_bool).length;
+  const naoN = DATA.length - simN;
+  new Chart(document.getElementById('chartDefesa'), {
+    type:'doughnut',
+    data:{ labels:['Sim','Não / pendente'], datasets:[{ data:[simN,naoN], backgroundColor:[COLORS.green, COLORS.red], borderWidth:2, borderColor:'#fff' }] },
+    options:{ plugins:{ legend:{ position:'bottom' } }, cutout:'62%' }
+  });
+}
+
+/* ---------------- Chart: periodo ---------------- */
+function renderPeriodo(){
+  const m = {};
+  DATA.forEach(r=>{
+    if(!r.distribuicao) return;
+    const ym = r.distribuicao.slice(0,7);
+    m[ym] = (m[ym]||0)+1;
+  });
+  const keys = Object.keys(m).sort();
+  const labels = keys.map(k=>{
+    const [y,mo] = k.split('-');
+    const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    return meses[parseInt(mo)-1]+'/'+y.slice(2);
+  });
+  new Chart(document.getElementById('chartPeriodo'), {
+    type:'bar',
+    data:{ labels, datasets:[{ data: keys.map(k=>m[k]), backgroundColor: COLORS.blue, borderRadius:6, maxBarThickness:44 }] },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{ y:{ grid:{color:'#eef1f7'}, ticks:{precision:0} }, x:{ grid:{display:false} } }
+    }
+  });
+}
+
+/* ---------------- Atencao imediata ---------------- */
+function renderAtencao(){
+  const items = [];
+  DATA.forEach(r=>{
+    if(r.audiencia){
+      items.push({date:r.audiencia, tag:'Audiência', tagClass:'aud', row:r});
+    }
+    if(r.defesa_deadline){
+      items.push({date:r.defesa_deadline, tag:'Prazo defesa', tagClass:'defesa', row:r});
+    }
+    if(r.concluso_sentenca && r.resultado==='Em andamento'){
+      items.push({date:null, tag:'Concluso p/ sentença', tagClass:'sentenca', row:r, noDate:true});
+    }
+  });
+  // dated items first, sorted ascending; keep only future or overdue-by-a-bit, then undated at the end
+  const dated = items.filter(i=>i.date).sort((a,b)=> new Date(a.date) - new Date(b.date));
+  const undated = items.filter(i=>!i.date);
+  const ordered = [...dated, ...undated].slice(0, 40);
+
+  const list = document.getElementById('attnList');
+  if(ordered.length===0){
+    list.innerHTML = '<div class="empty-state">Nenhum prazo ou audiência identificado nos andamentos.</div>';
+    return;
+  }
+  list.innerHTML = ordered.map(i=>{
+    let urgencyClass = 'later';
+    let chipLabel = i.date ? fmtDate(i.date) : 'Sem data';
+    if(i.date){
+      const du = daysUntil(i.date);
+      if(du < 0) urgencyClass = 'urgent';
+      else if(du <= 7) urgencyClass = 'urgent';
+      else if(du <= 15) urgencyClass = 'soon';
+      else urgencyClass = 'later';
+    } else {
+      urgencyClass = 'soon';
+    }
+    const r = i.row;
+    return `<div class="attn-item ${urgencyClass}">
+      <div class="date-chip">${chipLabel}</div>
+      <div class="info"><b>${r.autor||'—'}</b><span>${r.comarca||''} · ${r.uf||''} · ${r.objeto||''}</span></div>
+      <div class="num">${r.processo||''}</div>
+      <div class="tag ${i.tagClass}">${i.tag}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------------- Filters + table ---------------- */
+function uniqueSorted(rows, key){
+  return [...new Set(rows.map(r=>r[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+function populateSelect(id, values){
+  const el = document.getElementById(id);
+  values.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    el.appendChild(opt);
+  });
+}
+function riscoPillClass(r){
+  if(r==='Remoto') return 'risco-remoto';
+  if(r==='Possível') return 'risco-possivel';
+  if(r==='Provável') return 'risco-provavel';
+  return '';
+}
+function renderTable(rows){
+  const tbody = document.getElementById('tblBody');
+  document.getElementById('fCount').textContent = rows.length + ' de ' + DATA.length + ' processos';
+  if(rows.length===0){
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:24px;">Nenhum processo encontrado com os filtros aplicados.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td>${r.num}</td>
+      <td>${r.autor||'—'}</td>
+      <td>${r.uf||'—'}</td>
+      <td>${r.comarca||'—'}</td>
+      <td>${r.objeto||'—'}</td>
+      <td><span class="pill status-pill">${r.status_juridico}</span></td>
+      <td>${fmtBRL(r.valor||0)}</td>
+      <td><span class="pill ${riscoPillClass(r.risco)}">${r.risco||'—'}</span></td>
+      <td>${r.resultado||'—'}</td>
+      <td><span class="pill ${r.defesa_bool?'def-sim':'def-nao'}">${r.defesa_bool?'Sim':'Não'}</span></td>
+      <td class="mono">${r.processo||'—'}</td>
+    </tr>`).join('');
+}
+function applyFilters(){
+  const objeto = document.getElementById('fObjeto').value;
+  const uf = document.getElementById('fUF').value;
+  const risco = document.getElementById('fRisco').value;
+  const status = document.getElementById('fStatus').value;
+  const search = document.getElementById('fSearch').value.trim().toLowerCase();
+
+  const rows = DATA.filter(r=>{
+    if(objeto && r.objeto !== objeto) return false;
+    if(uf && r.uf !== uf) return false;
+    if(risco && r.risco !== risco) return false;
+    if(status && r.status_juridico !== status) return false;
+    if(search){
+      const hay = (r.autor+' '+r.comarca+' '+r.processo).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  renderTable(rows);
+}
+function initFilters(){
+  populateSelect('fObjeto', uniqueSorted(DATA,'objeto'));
+  populateSelect('fUF', uniqueSorted(DATA,'uf'));
+  populateSelect('fRisco', uniqueSorted(DATA,'risco'));
+  populateSelect('fStatus', uniqueSorted(DATA,'status_juridico'));
+  ['fObjeto','fUF','fRisco','fStatus'].forEach(id=>document.getElementById(id).addEventListener('change', applyFilters));
+  document.getElementById('fSearch').addEventListener('input', applyFilters);
+  document.getElementById('fClear').addEventListener('click', ()=>{
+    ['fObjeto','fUF','fRisco','fStatus'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fSearch').value='';
+    applyFilters();
+  });
+  renderTable(DATA);
+}
+
+document.getElementById('totalBadge').textContent = DATA.length;
+renderKPIs();
+renderObjeto();
+renderRisco();
+renderUF();
+renderFase();
+renderPeriodo();
+renderAtencao();
+initFilters();
+
+</script>
+</body>
+</html>
